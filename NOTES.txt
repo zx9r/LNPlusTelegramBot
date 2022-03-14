@@ -1,0 +1,28 @@
+persistence.get_user_data()
+
+{
+    '<user_id>': {
+        'effective_user': <telegram.User>,
+        'config': {
+            'MIN_CAPACITY': <number>,
+            'MAX_CAPACITY': <number>,
+            'MIN_PLACES': <number>,
+            'MAX_PLACES': <number>,
+            'MIN_PLACES_LEFT': <number>,
+            'MAX_PLACES_LEFT': <number>,
+            'NOTIFICATIONS_STATUS': <'ON' | 'OFF'>
+        }
+        'notified_swaps': {
+            '<swap_id>': {
+                'swap_id': <number>,
+                'shape': <Triangle | Square | Pentagon | ... >,
+                'capacity': <number>,
+                'places_total': <number>,
+                'places_left': <number>
+            }
+        }
+    }
+}
+
+
+context.user_data = persistence.get_user_data[user_id]
