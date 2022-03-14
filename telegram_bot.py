@@ -1,15 +1,16 @@
-from telegram.ext.updater import Updater
-from telegram.update import Update
+import logging
+
+from telegram.ext import PicklePersistence
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.commandhandler import CommandHandler
-from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
-from telegram.ext import PicklePersistence
-from telegram_token import TELEGRAM_TOKEN
+from telegram.ext.messagehandler import MessageHandler
+from telegram.ext.updater import Updater
+from telegram.update import Update
+
 import config
 from lnplus import lnplus_start_polling
-
-import logging
+from telegram_token import TELEGRAM_TOKEN
 
 logging.basicConfig(filename='debug.log',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -188,4 +189,3 @@ updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
 updater.start_polling()
 
 lnplus_start_polling(updater, persistence)
-

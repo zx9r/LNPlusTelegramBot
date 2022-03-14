@@ -1,8 +1,10 @@
+import logging
+import time
+
 import requests
 from bs4 import BeautifulSoup
-import time
+
 import config
-import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
