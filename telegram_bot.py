@@ -9,7 +9,7 @@ from telegram.ext.updater import Updater
 from telegram.update import Update
 
 import config
-from lnplus import lnplus_start_polling
+from lnplus import lnplus_engine
 from telegram_token import TELEGRAM_TOKEN
 
 logging.basicConfig(filename='debug.log',
@@ -38,6 +38,7 @@ def start(update: Update, context: CallbackContext):
         reply_text = 'Bot was already started'
     else:
         context.user_data['effective_user'] = update.effective_user
+        context.user_data['authorized'] = True
         context.user_data['config'] = {
             'MIN_CAPACITY': config.MIN_CAPACITY,
             'MAX_CAPACITY': config.MAX_CAPACITY,
@@ -186,6 +187,7 @@ updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown))
 # Filters out unknown messages.
 updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
 
-updater.start_polling()
+updater.job_queue.run_repeating(lnplus_engine, interval=config.POLL_INTERVAL)
 
-lnplus_start_polling(updater, persistence)
+updater.start_polling()
+updater.idle()

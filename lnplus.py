@@ -3,6 +3,8 @@ import time
 
 import requests
 from bs4 import BeautifulSoup
+from telegram.error import Unauthorized
+from telegram.ext.callbackcontext import CallbackContext
 
 import config
 
@@ -15,10 +17,11 @@ class Notifier:
     def __init__(self):
         pass
 
-    def notify(self, updater, pending_swaps, persistence):
-        user_data = persistence.user_data
+    def notify(self, pending_swaps, user_data, bot):
         for user_key in user_data:
             user = user_data[user_key]
+            if not user['authorized']:
+                continue
             user_config = user['config']
             if user_config['NOTIFICATIONS_STATUS'] != 'ON':
                 continue
@@ -31,9 +34,11 @@ class Notifier:
                     notified = user['notified_swaps'].get(swap_id)
                     if not notified or notified != pending_swap:
                         user['notified_swaps'][swap_id] = pending_swap
-                        persistence.flush()
                         try:
-                            updater.bot.send_message(user_key, self.create_message(pending_swap))
+                            bot.send_message(user_key, self.create_message(pending_swap))
+                        except Unauthorized:
+                            logger.info(f'Unable to send message to {user_config} (Unauthorized)')
+                            user['authorized'] = False
                         except Exception as e:
                             logger.exception(f"error sending alert to {user_key}", e)
 
@@ -78,9 +83,9 @@ def retrieve_pending_swaps():
     return result
 
 
-def lnplus_start_polling(updater, persistence):
+def lnplus_engine(context: CallbackContext):
+    logger.debug("LN+ engine starting")
+    pending_swaps = retrieve_pending_swaps()
     notifier = Notifier()
-    while True:
-        pending_swaps = retrieve_pending_swaps()
-        notifier.notify(updater, pending_swaps, persistence)
-        time.sleep(config.POLL_INTERVAL)
+    notifier.notify(pending_swaps, context.dispatcher.user_data, context.bot)
+    logger.debug("LN+ engine finished")

@@ -3,6 +3,7 @@ persistence.get_user_data()
 {
     '<user_id>': {
         'effective_user': <telegram.User>,
+        'authorized': <bool>,
         'config': {
             'MIN_CAPACITY': <number>,
             'MAX_CAPACITY': <number>,
