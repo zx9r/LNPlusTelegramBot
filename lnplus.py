@@ -20,7 +20,7 @@ class Notifier:
     def notify(self, pending_swaps, user_data, bot):
         for user_key in user_data:
             user = user_data[user_key]
-            if not user['authorized']:
+            if not user or not user['authorized']:
                 continue
             user_config = user['config']
             if user_config['NOTIFICATIONS_STATUS'] != 'ON':
