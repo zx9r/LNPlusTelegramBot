@@ -47,7 +47,7 @@ class Notifier:
 New ring detected:
  
   Shape: {pending_swap['shape']}
-  Capacity: {pending_swap['capacity']}
+  Capacity: {pending_swap['capacity']:,}
   Total places: {pending_swap['places_total']}
   Places Left: {pending_swap['places_left']}
   
@@ -58,27 +58,37 @@ New ring detected:
 
 def retrieve_pending_swaps():
     result = []
-    response = requests.get(config.LNPLUS_URL)
+    page = 1
+    url = config.LNPLUS_URL + config.LNPLUS_PENDING_PAGE1
+    while True:
+        response = requests.get(url)
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    div_swaps = soup.find_all('div', class_='bg-white dark:bg-black rounded-br-2xl rounded-bl-xl shadow-md p-6')
-    logger.debug(f'Found {len(div_swaps)} swaps open for application')
-    for div_swap in div_swaps:
-        paragraphs = div_swap.find_all('p')
-        shape = paragraphs[0].text.split()[0]
-        capacity = int(paragraphs[1].text.split()[0].replace(',', ''))
-        places = paragraphs[4].find_all('span')
-        places_left = int(places[0].text)
-        places_total = int(places[2].text)
-        link = div_swap.find('a')
-        swap_id = link.get('href').split('/')[-1]
-        swap = {'swap_id': swap_id,
-                'shape': shape,
-                'capacity': capacity,
-                'places_total': places_total,
-                'places_left': places_left
-                }
-        result.append(swap)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        div_swaps = soup.find_all('div', class_='bg-white dark:bg-black rounded-br-2xl rounded-bl-xl shadow-md p-6')
+        logger.debug(f'Found {len(div_swaps)} swaps open for application in page {page}')
+        for div_swap in div_swaps:
+            paragraphs = div_swap.find_all('p')
+            shape = paragraphs[0].text.split()[0]
+            capacity = int(paragraphs[1].text.split()[0].replace(',', ''))
+            places = paragraphs[4].find_all('span')
+            places_left = int(places[0].text)
+            places_total = int(places[2].text)
+            link = div_swap.find('a')
+            swap_id = link.get('href').split('/')[-1]
+            swap = {'swap_id': swap_id,
+                    'shape': shape,
+                    'capacity': capacity,
+                    'places_total': places_total,
+                    'places_left': places_left
+                    }
+            result.append(swap)
+
+        next_page = soup.find('a', rel='next')
+        if not next_page:
+            break
+
+        page += 1
+        url = config.LNPLUS_URL + next_page.get('href')
 
     return result
 
@@ -86,6 +96,7 @@ def retrieve_pending_swaps():
 def lnplus_engine(context: CallbackContext):
     logger.debug("LN+ engine starting")
     pending_swaps = retrieve_pending_swaps()
+    logger.debug(f'Retrieved {len(pending_swaps)} pending swaps')
     notifier = Notifier()
     notifier.notify(pending_swaps, context.dispatcher.user_data, context.bot)
     logger.debug("LN+ engine finished")

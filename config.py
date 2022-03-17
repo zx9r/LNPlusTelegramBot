@@ -1,4 +1,5 @@
-LNPLUS_URL = 'https://lightningnetwork.plus/swaps?status=pending&shape=&size=&commit=Search'
+LNPLUS_URL = 'https://lightningnetwork.plus'
+LNPLUS_PENDING_PAGE1 = '/swaps?status=pending&shape=&size=&commit=Search'
 LNPLUS_SWAP_URL = 'https://lightningnetwork.plus/swaps/'
 
 POLL_INTERVAL = 60

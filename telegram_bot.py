@@ -58,6 +58,7 @@ def help(update: Update, context: CallbackContext):
     logger.debug(f'help command called from {update.effective_user}')
 
     help_message = '''
+/settings - Show current settings
 /set_notification_status <on | off> - Turn notifications on/off
 /set_min_capacity <min_capacity> - Set the minimum capacity of the rings to be notified
 /set_max_capacity <max_capacity> - Set the maximum capacity of the rings to be notified
@@ -65,18 +66,19 @@ def help(update: Update, context: CallbackContext):
 /set_max_places <max_places> - Set the maximum number of places of the rings to be notified
 /set_min_places_left <min_places_left> - Set the minimum number of places left of the rings to be notified
 /set_max_places_left <max_places_left> - Set the maximum number of places left of the rings to be notified
-/show_config - Show the actual configuration
+
+You can also ask here: https://t.me/+SwTjvXzZl6NiNjY0
 '''
     update.message.reply_text(help_message)
 
 
-def show_config(update: Update, context: CallbackContext):
+def settings(update: Update, context: CallbackContext):
     logger.debug(f'show_config command called from {update.effective_user}')
 
     user_config = context.user_data['config']
     config_message = f'Notification status: {user_config["NOTIFICATIONS_STATUS"]}\n'
-    config_message += f'min_capacity: {user_config["MIN_CAPACITY"]}\n'
-    config_message += f'max_capacity: {user_config["MAX_CAPACITY"]}\n'
+    config_message += f'min_capacity: {user_config["MIN_CAPACITY"]:,}\n'
+    config_message += f'max_capacity: {user_config["MAX_CAPACITY"]:,}\n'
     config_message += f'min_places: {user_config["MIN_PLACES"]}\n'
     config_message += f'max_places: {user_config["MAX_PLACES"]}\n'
     config_message += f'min_places_left: {user_config["MIN_PLACES_LEFT"]}\n'
@@ -174,7 +176,7 @@ def unknown_text(update: Update, context: CallbackContext):
 
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
-updater.dispatcher.add_handler(CommandHandler('show_config', show_config))
+updater.dispatcher.add_handler(CommandHandler('settings', settings))
 updater.dispatcher.add_handler(CommandHandler('set_min_capacity', set_min_capacity))
 updater.dispatcher.add_handler(CommandHandler('set_max_capacity', set_max_capacity))
 updater.dispatcher.add_handler(CommandHandler('set_min_places', set_min_places))
