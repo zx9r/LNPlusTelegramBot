@@ -12,9 +12,11 @@ persistence = PicklePersistence(filename=filename)
 
 user_data = persistence.get_user_data()
 print(user_data)
+
 for user_key in user_data:
     user = user_data[user_key]
     if user:
-        print(f"{user_key:<15} {user['effective_user']['username']:20} authorized: {str(user['authorized']):6} config: {user['config']}")
+        print(f"{user_key:<15} {str(user['effective_user']['username']):20} authorized: {str(user['authorized']):6} "
+              f"settings: {user['settings']}")
     else:
         print(f"{user_key:<15} -empty-")
