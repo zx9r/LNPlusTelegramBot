@@ -1,5 +1,5 @@
+import json
 import logging
-import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,22 +22,20 @@ class Notifier:
             user = user_data[user_key]
             if not user or not user['authorized']:
                 continue
-            user_config = user['config']
-            if user_config['NOTIFICATIONS_STATUS'] != 'ON':
+            user_settings = user['settings']
+            if user_settings['NOTIFICATIONS_STATUS'] != 'ON':
                 continue
             for pending_swap in pending_swaps:
-                if user_config['MIN_CAPACITY'] <= pending_swap['capacity'] <= user_config['MAX_CAPACITY'] and \
-                        user_config['MIN_PLACES'] <= pending_swap['places_total'] <= user_config['MAX_PLACES'] and \
-                        user_config['MIN_PLACES_LEFT'] <= pending_swap['places_left'] <= user_config['MAX_PLACES_LEFT']:
+                if user_settings['MIN_CAPACITY'] <= pending_swap['capacity_sats'] <= user_settings['MAX_CAPACITY'] and \
+                        user_settings['MIN_PLACES'] <= pending_swap['participant_max_count'] <= user_settings['MAX_PLACES'] and \
+                        user_settings['MIN_PLACES_LEFT'] <= pending_swap['participant_waiting_for_count'] <= user_settings['MAX_PLACES_LEFT']:
 
-                    swap_id = pending_swap['swap_id']
-                    notified = user['notified_swaps'].get(swap_id)
-                    if not notified or notified != pending_swap:
-                        user['notified_swaps'][swap_id] = pending_swap
+                    if pending_swap['id'] not in user['notified_swaps']:
+                        user['notified_swaps'].append(pending_swap['id'])
                         try:
                             bot.send_message(user_key, self.create_message(pending_swap))
                         except Unauthorized:
-                            logger.info(f'Unable to send message to {user_config} (Unauthorized)')
+                            logger.info(f'Unable to send message to {user_settings} (Unauthorized)')
                             user['authorized'] = False
                         except Exception as e:
                             logger.exception(f"error sending alert to {user_key}", e)
@@ -46,17 +44,25 @@ class Notifier:
         message = f"""
 New ring detected:
  
-  Shape: {pending_swap['shape']}
-  Capacity: {pending_swap['capacity']:,}
-  Total places: {pending_swap['places_total']}
-  Places Left: {pending_swap['places_left']}
+  Capacity: {pending_swap['capacity_sats']:,}
+  Total places: {pending_swap['participant_max_count']}
+  Places Left: {pending_swap['participant_waiting_for_count']}
   
-  {config.LNPLUS_SWAP_URL}{pending_swap['swap_id']}
+  {pending_swap['web_url']}
 """
         return message
 
 
-def retrieve_pending_swaps():
+def retrieve_pending_swaps(num_swaps=50):
+    pending_swaps_url = config.LNPLUS_API_URL + config.LNPLUS_API_LATEST_SWAPS + 'pending/' + str(num_swaps)
+
+    response = requests.get(pending_swaps_url)
+    pending_swaps = response.json()
+
+    return pending_swaps
+
+
+def retrieve_pending_swaps_scrapping():
     result = []
     page = 1
     url = config.LNPLUS_URL + config.LNPLUS_PENDING_PAGE1
