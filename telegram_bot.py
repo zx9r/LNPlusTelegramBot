@@ -39,7 +39,7 @@ def start(update: Update, context: CallbackContext):
     else:
         context.user_data['effective_user'] = update.effective_user
         context.user_data['authorized'] = True
-        context.user_data['config'] = {
+        context.user_data['settings'] = {
             'MIN_CAPACITY': config.MIN_CAPACITY,
             'MAX_CAPACITY': config.MAX_CAPACITY,
             'MIN_PLACES': config.MIN_PLACES,
@@ -48,7 +48,7 @@ def start(update: Update, context: CallbackContext):
             'MAX_PLACES_LEFT': config.MAX_PLACES_LEFT,
             'NOTIFICATIONS_STATUS': 'ON'
         }
-        context.user_data['notified_swaps'] = {}
+        context.user_data['notified_swaps'] = []
         reply_text = "Welcome to the LightningNetworkPlus Notification Bot. Type /help to see the list of commands"
     logger.debug(context.user_data)
     update.message.reply_text(reply_text)
@@ -73,23 +73,22 @@ You can also ask here: https://t.me/+SwTjvXzZl6NiNjY0
 
 
 def settings(update: Update, context: CallbackContext):
-    logger.debug(f'show_config command called from {update.effective_user}')
+    logger.debug(f'settings command called from {update.effective_user}')
 
-    user_config = context.user_data['config']
-    config_message = f'Notification status: {user_config["NOTIFICATIONS_STATUS"]}\n'
-    config_message += f'min_capacity: {user_config["MIN_CAPACITY"]:,}\n'
-    config_message += f'max_capacity: {user_config["MAX_CAPACITY"]:,}\n'
-    config_message += f'min_places: {user_config["MIN_PLACES"]}\n'
-    config_message += f'max_places: {user_config["MAX_PLACES"]}\n'
-    config_message += f'min_places_left: {user_config["MIN_PLACES_LEFT"]}\n'
-    config_message += f'max_places_left: {user_config["MAX_PLACES_LEFT"]}\n'
-    update.message.reply_text(config_message)
+    response = f'Notification status: {context.user_data["settings"]["NOTIFICATIONS_STATUS"]}\n'
+    response += f'min_capacity: {context.user_data["settings"]["MIN_CAPACITY"]:,}\n'
+    response += f'max_capacity: {context.user_data["settings"]["MAX_CAPACITY"]:,}\n'
+    response += f'min_places: {context.user_data["settings"]["MIN_PLACES"]}\n'
+    response += f'max_places: {context.user_data["settings"]["MAX_PLACES"]}\n'
+    response += f'min_places_left: {context.user_data["settings"]["MIN_PLACES_LEFT"]}\n'
+    response += f'max_places_left: {context.user_data["settings"]["MAX_PLACES_LEFT"]}\n'
+    update.message.reply_text(response)
 
 
 def set_min_capacity(update: Update, context: CallbackContext):
     try:
         min_capacity = int(update.message.text.split()[1])
-        context.user_data['config']['MIN_CAPACITY'] = min_capacity
+        context.user_data['settings']['MIN_CAPACITY'] = min_capacity
         response = f'min_capacity set to {min_capacity}'
     except:
         response = 'Invalid value'
@@ -99,7 +98,7 @@ def set_min_capacity(update: Update, context: CallbackContext):
 def set_max_capacity(update: Update, context: CallbackContext):
     try:
         max_capacity = int(update.message.text.split()[1])
-        context.user_data['config']['MAX_CAPACITY'] = max_capacity
+        context.user_data['settings']['MAX_CAPACITY'] = max_capacity
         response = f'max_capacity set to {max_capacity}'
     except:
         response = 'Invalid value'
@@ -109,7 +108,7 @@ def set_max_capacity(update: Update, context: CallbackContext):
 def set_min_places(update: Update, context: CallbackContext):
     try:
         min_places = int(update.message.text.split()[1])
-        context.user_data['config']['MIN_PLACES'] = min_places
+        context.user_data['settings']['MIN_PLACES'] = min_places
         response = f'min_places set to {min_places}'
     except:
         response = 'Invalid value'
@@ -119,7 +118,7 @@ def set_min_places(update: Update, context: CallbackContext):
 def set_max_places(update: Update, context: CallbackContext):
     try:
         max_places = int(update.message.text.split()[1])
-        context.user_data['config']['MAX_PLACES'] = max_places
+        context.user_data['settings']['MAX_PLACES'] = max_places
         response = f'max_places set to {max_places}'
     except:
         response = 'Invalid value'
@@ -129,7 +128,7 @@ def set_max_places(update: Update, context: CallbackContext):
 def set_min_places_left(update: Update, context: CallbackContext):
     try:
         min_places_left = int(update.message.text.split()[1])
-        context.user_data['config']['MIN_PLACES_LEFT'] = min_places_left
+        context.user_data['settings']['MIN_PLACES_LEFT'] = min_places_left
         response = f'min_places_left set to {min_places_left}'
     except:
         response = 'Invalid value'
@@ -139,7 +138,7 @@ def set_min_places_left(update: Update, context: CallbackContext):
 def set_max_places_left(update: Update, context: CallbackContext):
     try:
         max_places_left = int(update.message.text.split()[1])
-        context.user_data['config']['MAX_PLACES_LEFT'] = max_places_left
+        context.user_data['settings']['MAX_PLACES_LEFT'] = max_places_left
         response = f'max_places_left set to {max_places_left}'
     except:
         response = 'Invalid value'
@@ -151,12 +150,12 @@ def set_notification_status(update: Update, context: CallbackContext):
         status = update.message.text.split()[1].upper()
         notification_on = status == '1' or status == 'ON' or status == 'TRUE'
         if notification_on:
-            context.user_data['config']['NOTIFICATIONS_STATUS'] = 'ON'
+            context.user_data['settings']['NOTIFICATIONS_STATUS'] = 'ON'
             response = f'Notification status is now ON'
         else:
             notification_off = status == '0' or status == 'OFF' or status == 'OF' or status == 'FALSE'
             if notification_off:
-                context.user_data['config']['NOTIFICATIONS_STATUS'] = 'OFF'
+                context.user_data['settings']['NOTIFICATIONS_STATUS'] = 'OFF'
                 response = f'Notification status is now OFF'
             else:
                 response = 'Invalid value'
